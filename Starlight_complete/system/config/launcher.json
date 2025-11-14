@@ -1,0 +1,7 @@
+{
+  "default_runtime": "python",
+  "entry_script": "runtime/common/starlight_main.py",
+  "auto_tasks": [
+    "tasks/automations/on_plug_in.json"
+  ]
+}

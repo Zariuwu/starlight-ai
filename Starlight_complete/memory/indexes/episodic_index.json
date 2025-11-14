@@ -1,0 +1,7 @@
+{
+  "embedding_model": "text-embedding-3-small",
+  "items": [
+    {"id": "ep_001", "file": "memory/episodic/2025-11.jsonl", "offset": 0},
+    {"id": "ep_002", "file": "memory/episodic/2025-11.jsonl", "offset": 1}
+  ]
+}

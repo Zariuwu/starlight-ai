@@ -1,0 +1,2 @@
+{"id": "ep_001", "timestamp": "2025-11-14T10:02:00Z", "device": "mac", "text": "User plugged Starlight into iMac for the first time.", "tags": ["usb", "init"]}
+{"id": "ep_002", "timestamp": "2025-11-14T10:30:00Z", "device": "mac", "text": "User worked on Jetson connection design.", "tags": ["jetson", "design"]}

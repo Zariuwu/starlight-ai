@@ -1,0 +1,7 @@
+{
+  "name": "macos_ui",
+  "description": "Interact with macOS windows, keyboard, and mouse.",
+  "os": ["macos"],
+  "entry_script": "runtime/macos/skills/macos_ui.py",
+  "capabilities": ["click", "type_text", "focus_app"]
+}

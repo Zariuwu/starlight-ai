@@ -1,0 +1,11 @@
+Starlight Android Launcher
+-------------------------
+This file describes how to build an Android launcher for Starlight.
+
+The Android app should:
+1. Declare usb host capability and storage permission.
+2. Listen for ACTION_MEDIA_MOUNTED or USB attached intents via UsbManager.
+3. On detection, check for Starlight/manifest.json on the attached storage.
+4. Launch the Starlight runtime component inside the app, loading memory and agent modules from the USB.
+
+Note: Actual implementation requires building an Android app using Kotlin/Java.

@@ -1,0 +1,21 @@
+{
+  "name": "default_on_plug_in",
+  "steps": [
+    {
+      "type": "sync_memory",
+      "targets": ["nodes/jetson", "nodes/mac"]
+    },
+    {
+      "type": "start_agent",
+      "agent": "agents/core/starlight_assistant.json"
+    },
+    {
+      "type": "start_listener",
+      "mode": "voice_or_terminal"
+    },
+    {
+      "type": "check_tasks",
+      "source": "tasks/workflows/daily.json"
+    }
+  ]
+}
