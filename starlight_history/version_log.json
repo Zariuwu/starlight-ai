@@ -1,0 +1,12 @@
+{
+  "versions": [
+    {
+      "version": "0.1",
+      "description": "Initial repository creation and upload of Starlight_complete."
+    },
+    {
+      "version": "0.2",
+      "description": "COMET Verification Report v1 added. Beginning structured reconstruction."
+    }
+  ]
+}
