@@ -1,92 +1,38 @@
-import os
-import json
-from datetime import datetime
+import time
+from typing import Dict, Any, List
 
-from . import intent_classifier, context_builder, response_merger, cloud_client
-
-
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-LOG_DIR = os.path.join(ROOT_DIR, "logs", "runtime")
-os.makedirs(LOG_DIR, exist_ok=True)
-
-SESSION_LOG = os.path.join(LOG_DIR, "session_log.jsonl")
+from .intent_classifier import classify_intent
+from .context_builder import build_context
+from .response_merger import merge_response, local_fallback_reply
+from .cloud_client import cloud_reason
+from ..memory import retrieval
 
 
-def _log_event(record: dict) -> None:
-    try:
-        with open(SESSION_LOG, "a", encoding="utf-8") as f:
-            f.write(json.dumps(record, ensure_ascii=False) + "\n")
-    except Exception:
-        # Logging must never crash Starlight
-        pass
-
-
-def run_turn(user_input: str, runtime_root: str | None = None) -> dict:
+def starlight_reason(message: str, system_state: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Core hybrid reasoning loop for Starlight.
-
-    - Classifies intent
-    - Builds context bundle
-    - Decides whether to use cloud or stay local
-    - Calls cloud_client when available
-    - Falls back to local response if cloud is offline
-    - Returns a structured dict and logs it
+    Full hybrid reasoning loop:
+    1. Classify intent
+    2. Retrieve memory (episodic + semantic)
+    3. Build context package
+    4. Cloud reasoning
+    5. Merge with memory + local fallback
     """
-    ts = datetime.utcnow().isoformat() + "Z"
 
-    intent = intent_classifier.classify_intent(user_input)
+    intent = classify_intent(message)
+    memories = retrieval.search_memories(message, top_k=5)
+    context = build_context(message, intent, memories)
 
-    context_bundle = context_builder.build_context(
-        user_input=user_input,
+    cloud_out = cloud_reason(context)
+    final = merge_response(
+        user_message=message,
+        cloud_message=cloud_out,
         intent=intent,
-        runtime_root=runtime_root or ROOT_DIR,
+        memories=memories,
     )
 
-    cloud_available = cloud_client.is_cloud_available()
-    used_cloud = False
-    cloud_payload = None
-    local_reply = None
-
-    if cloud_available and intent["kind"] in {"chat", "task", "memory"}:
-        cloud_payload = cloud_client.cloud_reason(
-            user_input=user_input,
-            context=context_bundle,
-        )
-        used_cloud = True
-    else:
-        local_reply = response_merger.local_fallback_reply(
-            user_input=user_input,
-            intent=intent,
-            context=context_bundle,
-            cloud_available=cloud_available,
-        )
-
-    final = response_merger.merge_response(
-        user_input=user_input,
-        intent=intent,
-        context=context_bundle,
-        cloud_response=cloud_payload,
-        local_reply=local_reply,
-        used_cloud=used_cloud,
-        timestamp=ts,
-    )
-
-    _log_event(final)
-
-    return final
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Run a single Starlight turn from the CLI.")
-    parser.add_argument("text", help="User input text")
-    parser.add_argument(
-        "--root",
-        help="Optional runtime root (defaults to autodetected USB root)",
-        default=None,
-    )
-    args = parser.parse_args()
-
-    result = run_turn(args.text, runtime_root=args.root)
-    print(result.get("reply", "[no reply generated]"))
+    return {
+        "intent": intent,
+        "memories_used": len(memories),
+        "response": final,
+        "timestamp": time.time()
+    }
